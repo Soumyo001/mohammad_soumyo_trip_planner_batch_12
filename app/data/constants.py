@@ -9,6 +9,14 @@ DEFAULT_ERROR_CODES = {
     500: "INTERNAL_SERVER_ERROR",
 }
 
+TRIP_REQUIRED_FIELDS = (
+    "destination",
+    "start_date",
+    "end_date",
+    "budget",
+    "max_travelers"
+)
+
 class Paths:
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".."))
     INSTANCE_DIR = os.path.join(BASE_DIR, "instance")

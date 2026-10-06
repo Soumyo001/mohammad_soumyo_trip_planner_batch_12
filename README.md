@@ -105,5 +105,21 @@ not committed to the repository.
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
 | GET | `/health` | Application health |
+| POST | `/api/v1/trips` | Create a trip |
+| GET | `/api/v1/trips` | List trips |
+| GET | `/api/v1/trips/<trip_id>` | Get one trip |
+| PUT | `/api/v1/trips/<trip_id>` | Update a trip |
+| DELETE | `/api/v1/trips/<trip_id>` | Delete a trip |
 
 Remaining endpoints are documented as they are implemented.
+
+## Assumptions
+
+- `PUT /api/v1/trips/<trip_id>` accepts partial payloads. Fields that are
+  absent keep their current values.
+- `PUT` ignores a `status` field in the body. Status changes go through
+  `PATCH /api/v1/trips/<trip_id>/status` so that lifecycle rules cannot be
+  bypassed.
+- `GET /api/v1/trips` returns a JSON array of trip objects.
+- A request body that is missing, malformed, or not sent as
+  `application/json` is rejected with HTTP 400.
