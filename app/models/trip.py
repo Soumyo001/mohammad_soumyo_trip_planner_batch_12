@@ -13,6 +13,17 @@ class Trip(db.Model):
     max_travelers = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(20), nullable=False, default=TripStatus.PLANNED)
 
+    participations = db.relationship(
+        "TripTraveler",
+        back_populates="trip",
+        cascade="all, delete-orphan"
+    )
+    expenses = db.relationship(
+        "Expense",
+        back_populates="trip",
+        cascade="all, delete-orphan"
+    )
+
     def to_json(self):
         return {
             "id": self.id,
