@@ -1,4 +1,4 @@
-from constants import Paths
+from app.constants import Paths
 
 class Config:
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + Paths.DATABASE_PATH

@@ -1,6 +1,6 @@
 from flask import jsonify
 from werkzeug.exceptions import HTTPException
-from constants import DEFAULT_ERROR_CODES
+from app.constants import DEFAULT_ERROR_CODES
 
 class ApiResponseError(Exception):
     error_code = "BAD_REQUEST"

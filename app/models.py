@@ -1,5 +1,5 @@
-from extensions import db
-from constants import TripStatus
+from app.extensions import db
+from app.constants import TripStatus
 
 
 class Trip(db.Model):
@@ -11,7 +11,7 @@ class Trip(db.Model):
     end_date = db.Column(db.Date, nullable=False)
     budget = db.Column(db.Float, nullable=False)
     max_travelers = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String(20), nullable=False, default=TripStatus.STATUS_PLANNED)
+    status = db.Column(db.String(20), nullable=False, default=TripStatus.PLANNED)
 
     def to_json(self):
         return {
