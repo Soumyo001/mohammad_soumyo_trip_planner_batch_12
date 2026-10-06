@@ -21,7 +21,7 @@ echo "Installing dependencies..."
 pip install -r requirements.txt
 
 echo "Initializing database..."
-python -c "from app import create_app; create_app()"
+python3 -c "from app import create_app; create_app()"
 
 echo "Starting API on http://127.0.0.1:5000"
-python run.py
+python3 run.py
