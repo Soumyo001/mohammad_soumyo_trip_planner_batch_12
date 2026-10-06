@@ -38,6 +38,29 @@ pip install -r requirements.txt
 python run.py
 ```
 
+## Environment variables
+
+The repository ships a `.env.example` file. `./run.sh` copies it to `.env`
+on first run. When running manually, copy it yourself:
+
+```bash
+cp .env.example .env
+```
+
+All variables have safe defaults in the application, so the API starts
+correctly even if `.env` is missing.
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `FLASK_HOST` | `127.0.0.1` | Host the server binds to |
+| `FLASK_PORT` | `5000` | Port the server listens on |
+| `FLASK_DEBUG` | `0` | Set to `1` to enable the Flask debugger |
+| `DATABASE_URI` | `sqlite:///instance/trip_planner.db` | Database connection string |
+
+> `DATABASE_URI` may be left empty. If you set it to a SQLite file, use an
+absolute path - Flask-SQLAlchemy resolves relative SQLite paths against the
+instance folder.
+
 ## How SQLite is initialized and stored
 
 The database file is created at `instance/trip_planner.db` the first time the
@@ -49,18 +72,27 @@ not committed to the repository.
 
 ```bash
 .
-├── run.py
-├── run.sh
-├── requirements.txt
+├── run.py 
+├── run.sh 
+├── requirements.txt 
 ├── README.md
 ├── .gitignore
+├── .env.example 
 ├── app/
-│   ├── init.py
-│   ├── config.py
-│   ├── extensions.py
-│   ├── errors.py
-│   ├── models.py
-│   └── routes.py
+│ ├── init.py
+│ ├── config/
+│ │ └── config.py
+│ ├── data/
+│ │ └── constants.py
+│ ├── models/
+│ │ └── trip.py
+│ ├── routes/
+│ │ ├── init.py
+│ │ └── health.py
+│ ├── services/
+│ └── utils/
+│   ├── error_util.py
+│   └── extension_util.py
 └── instance/
     └── trip_planner.db
 ```

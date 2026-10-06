@@ -1,8 +1,9 @@
 import os
-from app.config import Config
-from app.constants import Paths
-from app.errors import register_error_handlers
-from app.extensions import db
+from app.config.config import Config
+from app.data.constants import Paths
+from app.utils.error_util import register_error_handlers
+from app.routes import register_blueprints
+from app.utils.extension_util import db
 from flask import Flask
 
 def create_app():
@@ -13,13 +14,10 @@ def create_app():
 
     db.init_app(app)
     register_error_handlers(app)
-
-    from app.routes import health_bp, api_bp
-    app.register_blueprint(health_bp)
-    app.register_blueprint(api_bp)
+    register_blueprints(app)
 
     with app.app_context():
-        from app.models import Trip
+        from app import models
         db.create_all()
 
     return app

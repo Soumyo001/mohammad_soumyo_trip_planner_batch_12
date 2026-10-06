@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -e
 
 cd "$(dirname "$0")"
@@ -17,6 +18,13 @@ else
     source "$VENV_DIR/Scripts/activate"
 fi
 
+if [ ! -f ".env" ]; then
+    echo "Creating .env from .env.example..."
+    cp .env.example .env
+else
+    echo "Reusing existing .env..."
+fi
+
 echo "Installing dependencies..."
 pip install -r requirements.txt
 
@@ -24,4 +32,4 @@ echo "Initializing database..."
 python3 -c "from app import create_app; create_app()"
 
 echo "Starting API on http://127.0.0.1:5000"
-python3 run.py 
+python3 run.py

@@ -1,5 +1,5 @@
-from app.extensions import db
-from app.constants import TripStatus
+from app.utils.extension_util import db
+from app.data.constants import TripStatus
 
 
 class Trip(db.Model):
