@@ -54,8 +54,8 @@ correctly even if `.env` is missing.
 |----------|---------|---------|
 | `FLASK_HOST` | `127.0.0.1` | Host the server binds to |
 | `FLASK_PORT` | `5000` | Port the server listens on |
-| `FLASK_DEBUG` | `0` | Set to `1` to enable the Flask debugger |
-| `DATABASE_URI` | `sqlite:///instance/trip_planner.db` | Database connection string |
+| `FLASK_DEBUG` | `False` | Set to `True` to enable the Flask debugger |
+| `DATABASE_URI` | Absolute path to `instance/trip_planner.db` | Database connection string |
 
 > `DATABASE_URI` may be left empty. If you set it to a SQLite file, use an
 absolute path - Flask-SQLAlchemy resolves relative SQLite paths against the
@@ -72,27 +72,29 @@ not committed to the repository.
 
 ```bash
 .
-├── run.py 
-├── run.sh 
-├── requirements.txt 
+├── run.py
+├── run.sh
+├── requirements.txt
 ├── README.md
 ├── .gitignore
-├── .env.example 
+├── .env.example
 ├── app/
-│ ├── init.py
-│ ├── config/
-│ │ └── config.py
-│ ├── data/
-│ │ └── constants.py
-│ ├── models/
-│ │ └── trip.py
-│ ├── routes/
-│ │ ├── init.py
-│ │ └── health.py
-│ ├── services/
-│ └── utils/
-│   ├── error_util.py
-│   └── extension_util.py
+│   ├── __init__.py
+│   ├── config/
+│   │   └── config.py
+│   ├── data/
+│   │   └── constants.py
+│   ├── models/
+│   │   └── trip.py
+│   ├── routes/
+│   │   ├── health.py
+│   │   └── trip.py
+│   ├── services/
+│   │   └── trip.py
+│   └── utils/
+│       ├── error_util.py
+│       ├── extension_util.py
+│       └── validation_util.py
 └── instance/
     └── trip_planner.db
 ```
