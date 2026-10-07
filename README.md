@@ -123,6 +123,141 @@ not committed to the repository.
 | GET | `/api/v1/trips/<trip_id>/summary` | Calculated trip summary |
 | PATCH | `/api/v1/trips/<trip_id>/status` | Change trip status |
 
+## Example requests and responses
+
+### Create a trip
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/trips \
+  -H "Content-Type: application/json" \
+  -d '{"destination":"Coxs Bazar","start_date":"2026-10-20","end_date":"2026-10-23","budget":30000,"max_travelers":5}'
+```
+
+`201 Created`
+
+```json
+{
+  "id": 1,
+  "destination": "Coxs Bazar",
+  "start_date": "2026-10-20",
+  "end_date": "2026-10-23",
+  "budget": 30000.0,
+  "max_travelers": 5,
+  "status": "PLANNED"
+}
+```
+
+### Add a traveler
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/trips/1/travelers \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Ayesha Rahman","email":"ayesha@example.com"}'
+```
+
+`201 Created`
+
+```json
+{
+  "id": 1,
+  "name": "Ayesha Rahman",
+  "email": "ayesha@example.com"
+}
+```
+
+### Add an expense
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/trips/1/expenses \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Hotel","amount":12000}'
+```
+
+`201 Created`
+
+```json
+{
+  "id": 1,
+  "trip_id": 1,
+  "title": "Hotel",
+  "amount": 12000.0
+}
+```
+
+### Change trip status
+
+```bash
+curl -X PATCH http://127.0.0.1:5000/api/v1/trips/1/status \
+  -H "Content-Type: application/json" \
+  -d '{"status":"ONGOING"}'
+```
+
+`200 OK` — the updated trip object, with `status` set to `ONGOING`.
+
+### Trip summary
+
+```bash
+curl http://127.0.0.1:5000/api/v1/trips/1/summary
+```
+
+`200 OK`
+
+```json
+{
+  "trip_id": 1,
+  "destination": "Coxs Bazar",
+  "status": "ONGOING",
+  "budget": 30000.0,
+  "max_travelers": 5,
+  "traveler_count": 1,
+  "available_seats": 4,
+  "total_expense": 12000.0,
+  "remaining_budget": 18000.0
+}
+```
+
+### Error response
+
+Every failure returns the same shape.
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/v1/trips/1/travelers \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Ayesha Rahman","email":"ayesha@example.com"}'
+```
+
+`409 Conflict`
+
+```json
+{
+  "error": "DUPLICATE_TRAVELER",
+  "message": "Traveler ayesha@example.com is already a part of this trip"
+}
+```
+
+## Business rules
+
+| Rule | Requirement | Enforced in | Failure |
+|------|-------------|-------------|---------|
+| BR-01 | `end_date` later than `start_date` | `validate_date_order` in `app/utils/validation_util.py` | 400 |
+| BR-02 | `budget` greater than zero | `parse_positive_number` in `app/utils/validation_util.py` | 400 |
+| BR-03 | `max_travelers` greater than zero | `parse_positive_integer` in `app/utils/validation_util.py` | 400 |
+| BR-04 | No duplicate traveler on a trip, identified by email | `ensure_traveler_not_in_this_trip` in `app/services/traveler.py`, plus a unique constraint on `trip_travelers` | 409 |
+| BR-05 | Traveler count never exceeds `max_travelers` | `ensure_trip_has_free_seat` in `app/services/traveler.py` | 409 |
+| BR-06 | No traveler in two overlapping trips | `ensure_no_overlapping_trip` in `app/services/traveler.py` | 409 |
+| BR-07 | Expense amount greater than zero | `parse_positive_number` in `app/utils/validation_util.py` | 400 |
+| BR-08 | Total expenses never exceed the budget | `ensure_expense_fits_budget` in `app/services/expense.py` | 409 |
+| BR-09 | `max_travelers` not reduced below traveler count | `ensure_capacity_fits_current_travelers` in `app/services/trip.py` | 409 |
+| BR-10 | Travelers added only while PLANNED | `ensure_trip_accepts_travelers` in `app/services/traveler.py` | 409 |
+| BR-11 | Expenses added only while PLANNED or ONGOING | `ensure_trip_accepts_expenses` in `app/services/expense.py` | 409 |
+| BR-12 | COMPLETED trips are frozen | `ensure_trip_is_editable` in `app/services/trip.py`, `TripStatus.TERMINAL` and `ALLOWED_TRANSITIONS` in `app/data/constants.py` | 409 |
+| BR-13 | CANCELLED trips are frozen | Same as BR-12 | 409 |
+| BR-14 | Only the defined lifecycle transitions are valid | `TripStatus.ALLOWED_TRANSITIONS` in `app/data/constants.py`, checked by `ensure_transition_is_allowed` | 409 |
+
+> The lifecycle is defined as data rather than conditional branches, so a
+change to the permitted transitions is a change to a single dictionary in
+`app/data/constants.py`.
+
 ## Assumptions
 
 - `PUT /api/v1/trips/<trip_id>` accepts partial payloads. Fields that are
@@ -170,4 +305,26 @@ not committed to the repository.
   allowed for PLANNED and ONGOING trips.
 - `DELETE` is permitted in any status. BR-12 and BR-13 restrict editing a
   trip, and deleting is not an edit.
-- The summary endpoint remains readable in every status.
+
+## Known limitations
+
+- Monetary values are stored as floating point numbers. Comparisons are
+  rounded to two decimal places to keep budget checks exact, but a
+  production system would store amounts as integer minor units or use a
+  decimal column type.
+- Changing a trip's dates through `PUT` does not re-check BR-06 for
+  travelers who already joined. A date change can therefore create an
+  overlap that would have been rejected at join time. The assignment
+  specifies BR-06 only for the join operation.
+- Business rules are checked and then committed as separate steps, so two
+  simultaneous requests could in principle both pass a capacity or budget
+  check. The unique constraint on `trip_travelers` prevents duplicate
+  participation at the database level; the other rules rely on the
+  single-process development server used for this assignment.
+- `GET /api/v1/trips` returns every trip with no pagination or filtering.
+- Tables are created with `db.create_all()`. There is no migration tooling,
+  so a change to a model requires recreating the database file.
+- A traveler record remains after being removed from every trip, since
+  travelers are global entities identified by email.
+- Authentication and authorization are out of scope, so any client can
+  modify any trip.
