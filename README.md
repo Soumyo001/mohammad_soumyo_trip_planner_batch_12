@@ -121,8 +121,7 @@ not committed to the repository.
 | DELETE | `/api/v1/trips/<trip_id>/travelers/<traveler_id>` | Remove a traveler from a trip |
 | POST | `/api/v1/trips/<trip_id>/expenses` | Add an expense to a trip |
 | GET | `/api/v1/trips/<trip_id>/summary` | Calculated trip summary |
-
-Remaining endpoints are documented as they are implemented.
+| PATCH | `/api/v1/trips/<trip_id>/status` | Change trip status |
 
 ## Assumptions
 
@@ -161,3 +160,14 @@ Remaining endpoints are documented as they are implemented.
 - The summary endpoint is read-only and available in every trip status.
 - `total_expense` is 0 and `remaining_budget` equals the budget for a trip
   with no expenses.
+- A `status` value that is not one of the four lifecycle states is rejected
+  with HTTP 400 as invalid input. A valid state that is not a permitted
+  transition from the current state is rejected with HTTP 409.
+- Status values are accepted case-insensitively and stored in uppercase.
+- A transition to the trip's current status is rejected, since it is not
+  one of the transitions defined in the assignment.
+- `PUT` is rejected for COMPLETED and CANCELLED trips (BR-12, BR-13) and
+  allowed for PLANNED and ONGOING trips.
+- `DELETE` is permitted in any status. BR-12 and BR-13 restrict editing a
+  trip, and deleting is not an edit.
+- The summary endpoint remains readable in every status.

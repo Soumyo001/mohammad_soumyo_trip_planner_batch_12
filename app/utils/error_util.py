@@ -49,6 +49,7 @@ def register_error_handlers(app):
 
     @app.errorhandler(Exception)
     def handle_general_exceptions(error):
+        db.session.rollback()
         app.logger.exception("unhandled exception")
         body = {
             "error": "INTERNAL_SERVER_ERROR",

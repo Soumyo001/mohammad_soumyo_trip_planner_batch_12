@@ -17,17 +17,21 @@ TRIP_REQUIRED_FIELDS = (
     "start_date",
     "end_date",
     "budget",
-    "max_travelers"
+    "max_travelers",
 )
 
 TRAVELER_REQUIRED_FIELDS = (
     "name",
-    "email"
+    "email",
 )
 
 EXPENSE_REQUIRED_FIELDS = (
     "title",
-    "amount"
+    "amount",
+)
+
+STATUS_REQUIRED_FIELDS = (
+    "status",
 )
 
 class Paths:
@@ -45,5 +49,15 @@ class TripStatus:
         PLANNED,
         ONGOING,
         COMPLETED,
-        CANCELLED
+        CANCELLED,
     )
+    TERMINAL = (
+        COMPLETED,
+        CANCELLED,
+    )
+    ALLOWED_TRANSITIONS = {
+        PLANNED: (ONGOING, CANCELLED),
+        ONGOING: (COMPLETED, CANCELLED),
+        COMPLETED: (),
+        CANCELLED: ()
+    }

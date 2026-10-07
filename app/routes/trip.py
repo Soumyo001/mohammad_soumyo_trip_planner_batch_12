@@ -33,6 +33,13 @@ def update_trip(trip_id):
     updated_trip = trip_service.update_trip(trip, update_body)
     return jsonify(updated_trip.to_json()), 200
 
+@trip_bp.patch("/trips/<int:trip_id>/status")
+def update_trip_status(trip_id):
+    trip = trip_service.get_trip(trip_id)
+    status_body = get_json_body()
+    updated_trip = trip_service.update_trip_status(trip, status_body)
+    return jsonify(updated_trip.to_json()), 200
+
 @trip_bp.delete("/trips/<int:trip_id>")
 def delete_trip(trip_id):
     trip = trip_service.get_trip(trip_id)

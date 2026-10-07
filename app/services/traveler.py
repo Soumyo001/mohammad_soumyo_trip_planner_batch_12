@@ -55,10 +55,10 @@ def ensure_trip_accepts_travelers(trip):
         )
 
 def ensure_trip_allows_traveler_removal(trip):
-    if trip.status in (TripStatus.CANCELLED, TripStatus.COMPLETED):
+    if trip.status in TripStatus.TERMINAL:
         raise ConflictError(
             f"A {trip.status} trip cannot be modified",
-            error_code="TRIP_NOT_MUTABLE"
+            error_code="TRIP_NOT_EDITABLE"
         )
 
 def ensure_traveler_not_in_this_trip(trip, traveler):

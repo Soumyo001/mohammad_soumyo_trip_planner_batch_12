@@ -1,4 +1,4 @@
-from app.data.constants import TripStatus, TRIP_REQUIRED_FIELDS, MONEY_PRECISION
+from app.data.constants import TripStatus, TRIP_REQUIRED_FIELDS, MONEY_PRECISION, STATUS_REQUIRED_FIELDS
 from app.models.trip import Trip
 from app.services.traveler import count_trip_travelers
 from app.services.expense import total_trip_expense
@@ -8,6 +8,7 @@ from app.utils.validation_util import (
     require_fields,
     parse_string,
     parse_date,
+    parse_status,
     parse_positive_number,
     parse_positive_integer,
     validate_date_order
@@ -45,9 +46,31 @@ def ensure_capacity_fits_current_travelers(trip, max_travelers_cap):
     traveler_count = count_trip_travelers(trip)
     if max_travelers_cap < traveler_count:
         raise ConflictError(
-            f"max travelers cannot be reduced below the current traveler count {traveler_count}",
+            f"max travelers capacity cannot be reduced below current traveler count {traveler_count}",
             error_code="CAPACITY_BELOW_TRAVELER_COUNT"
         )
+
+def ensure_trip_is_editable(trip):
+    if trip.status in TripStatus.TERMINAL:
+        raise ConflictError(
+            f"A {trip.status} trip cannot be edited",
+            error_code="TRIP_NOT_EDITABLE"
+        )
+
+def ensure_transition_is_allowed(trip, new_status):
+    if new_status not in TripStatus.ALLOWED_TRANSITIONS[trip.status]:
+        raise ConflictError(
+            f"A trip cannot be moved from {trip.status} to {new_status}",
+            error_code="INVALID_STATUS_TRANSITION"
+        )
+
+def update_trip_status(trip, body):
+    require_fields(body, STATUS_REQUIRED_FIELDS)
+    new_status = parse_status(body["status"], "status")
+    ensure_transition_is_allowed(trip, new_status)
+    trip.status = new_status
+    db.session.commit()
+    return trip
 
 def create_trip(body):
     require_fields(body, TRIP_REQUIRED_FIELDS)
@@ -73,6 +96,8 @@ def create_trip(body):
     return trip
 
 def update_trip(trip, body):
+    ensure_trip_is_editable(trip)
+
     destination = trip.destination
     start_date = trip.start_date
     end_date = trip.end_date

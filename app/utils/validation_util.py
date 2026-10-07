@@ -1,8 +1,8 @@
+import re
 from datetime import date
 from flask import request
 from app.utils.error_util import ValidationError
-from app.data.constants import EMAIL_REGEX
-import re
+from app.data.constants import EMAIL_REGEX, TripStatus
 
 def get_json_body():
     body = request.get_json(silent=True)
@@ -58,3 +58,16 @@ def parse_email(value, field_name):
     if not re.match(EMAIL_REGEX, email):
         raise ValidationError(f"'{field_name}' must be a valid email address")
     return email
+
+def parse_status(value, field_name):
+    if not isinstance(value, str) or not value.strip():
+        raise ValidationError(f"'{field_name}' must be a non-empty string")
+    
+    status = value.strip().upper()
+    if status not in TripStatus.ALL:
+        allowed_statuses = ", ".join(TripStatus.ALL)
+        raise ValidationError(
+            f"'{field_name}' must be one of: {allowed_statuses}",
+            error_code="INVALID_STATUS"
+        )
+    return status
