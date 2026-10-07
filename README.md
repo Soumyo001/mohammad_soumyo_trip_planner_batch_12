@@ -110,6 +110,8 @@ not committed to the repository.
 | GET | `/api/v1/trips/<trip_id>` | Get one trip |
 | PUT | `/api/v1/trips/<trip_id>` | Update a trip |
 | DELETE | `/api/v1/trips/<trip_id>` | Delete a trip |
+| POST | `/api/v1/trips/<trip_id>/travelers` | Add a traveler to a trip |
+| DELETE | `/api/v1/trips/<trip_id>/travelers/<traveler_id>` | Remove a traveler from a trip |
 
 Remaining endpoints are documented as they are implemented.
 
@@ -123,3 +125,21 @@ Remaining endpoints are documented as they are implemented.
 - `GET /api/v1/trips` returns a JSON array of trip objects.
 - A request body that is missing, malformed, or not sent as
   `application/json` is rejected with HTTP 400.
+- Travelers are global records identified by email. Adding a traveler whose
+  email already exists reuses the existing record instead of creating a
+  duplicate. Emails are compared after trimming and lowercasing.
+- A traveler's stored name is not updated when the same email is added to a
+  later trip.
+- BR-06 is applied to every trip a traveler participates in, regardless of
+  that trip's status, because the rule states no exception. A CANCELLED trip
+  therefore still blocks an overlapping one.
+- Two date ranges are treated as overlapping when neither ends strictly
+  before the other begins, so a trip ending on the same day another begins
+  is a conflict.
+- Removing a traveler is allowed while a trip is PLANNED or ONGOING, and
+  rejected for COMPLETED and CANCELLED trips, which cannot be edited
+  (BR-12, BR-13).
+- Removing a traveler from a trip deletes the participation only. The
+  traveler record remains and may belong to other trips.
+- Deleting a trip also deletes its participations and expenses.
+- Reducing `max_travelers` below the current traveler count returns HTTP 409.

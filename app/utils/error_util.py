@@ -1,6 +1,7 @@
 from flask import jsonify
 from werkzeug.exceptions import HTTPException
 from app.data.constants import DEFAULT_ERROR_CODES
+from app.utils.extension_util import db
 
 class ApiResponseError(Exception):
     error_code = "BAD_REQUEST"
@@ -35,6 +36,7 @@ class ConflictError(ApiResponseError):
 def register_error_handlers(app):
     @app.errorhandler(ApiResponseError)
     def handle_api_response_error(error):
+        db.session.rollback()
         return jsonify(error.to_json()), error.status_code
 
     @app.errorhandler(HTTPException)

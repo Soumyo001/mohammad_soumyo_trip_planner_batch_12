@@ -1,6 +1,7 @@
 from app.data.constants import TripStatus, TRIP_REQUIRED_FIELDS
 from app.models.trip import Trip
-from app.utils.error_util import NotFoundError
+from app.services.traveler import count_trip_travelers
+from app.utils.error_util import NotFoundError, ConflictError
 from app.utils.extension_util import db
 from app.utils.validation_util import (
     require_fields,
@@ -22,6 +23,14 @@ def get_trip(trip_id):
 
 def list_trips():
     return db.session.scalars(db.select(Trip).order_by(Trip.id)).all()
+
+def capacity_fits_current_travelers(trip, max_travelers):
+    traveler_count = count_trip_travelers(trip)
+    if max_travelers < traveler_count:
+        raise ConflictError(
+            f"max travelers cannot be reduced below the current traveler count {traveler_count}",
+            error_code="CAPACITY_BELOW_TRAVELER_COUNT"
+        )
 
 def create_trip(body):
     require_fields(body, TRIP_REQUIRED_FIELDS)
@@ -65,6 +74,7 @@ def update_trip(trip, body):
         max_travelers = parse_positive_integer(body["max_travelers"], "max_travelers")
 
     validate_date_order(start_date, end_date)
+    capacity_fits_current_travelers(trip, max_travelers)
 
     trip.destination = destination
     trip.start_date = start_date

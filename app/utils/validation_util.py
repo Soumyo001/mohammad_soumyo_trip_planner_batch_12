@@ -1,6 +1,8 @@
 from datetime import date
 from flask import request
 from app.utils.error_util import ValidationError
+from app.data.constants import EMAIL_REGEX
+import re
 
 def get_json_body():
     body = request.get_json(silent=True)
@@ -48,3 +50,15 @@ def validate_date_order(start_date, end_date):
             "'end_date' must be later than 'start_date'",
             error_code="INVALID_DATE_RANGE"
         )
+
+def parse_email(value, field_name):
+    if not isinstance(value, str) or not value.strip():
+        raise ValidationError(f"'{field_name}' must be non-empty string")
+    email = value.strip().lower()
+    if (not email 
+        or "@" not in email 
+        or " " in email 
+        or "." not in email.split("@")[-1] 
+        or not re.match(EMAIL_REGEX, email)):
+        raise ValidationError(f"'{field_name}' must be a valid email address")
+    return email
