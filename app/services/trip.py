@@ -1,6 +1,7 @@
-from app.data.constants import TripStatus, TRIP_REQUIRED_FIELDS
+from app.data.constants import TripStatus, TRIP_REQUIRED_FIELDS, MONEY_PRECISION
 from app.models.trip import Trip
 from app.services.traveler import count_trip_travelers
+from app.services.expense import total_trip_expense
 from app.utils.error_util import NotFoundError, ConflictError
 from app.utils.extension_util import db
 from app.utils.validation_util import (
@@ -24,9 +25,25 @@ def get_trip(trip_id):
 def list_trips():
     return db.session.scalars(db.select(Trip).order_by(Trip.id)).all()
 
-def capacity_fits_current_travelers(trip, max_travelers):
+def get_trip_summary(trip):
     traveler_count = count_trip_travelers(trip)
-    if max_travelers < traveler_count:
+    total_expense = total_trip_expense(trip)
+
+    return {
+        "trip_id": trip.id,
+        "destination": trip.destination,
+        "status": trip.status,
+        "budget": trip.budget,
+        "max_travelers": trip.max_travelers,
+        "traveler_count": traveler_count,
+        "available_seats": trip.max_travelers - traveler_count,
+        "total_expense": total_expense,
+        "remaining_budget": round(trip.budget - total_expense, MONEY_PRECISION)
+    }
+
+def ensure_capacity_fits_current_travelers(trip, max_travelers_cap):
+    traveler_count = count_trip_travelers(trip)
+    if max_travelers_cap < traveler_count:
         raise ConflictError(
             f"max travelers cannot be reduced below the current traveler count {traveler_count}",
             error_code="CAPACITY_BELOW_TRAVELER_COUNT"
@@ -74,7 +91,7 @@ def update_trip(trip, body):
         max_travelers = parse_positive_integer(body["max_travelers"], "max_travelers")
 
     validate_date_order(start_date, end_date)
-    capacity_fits_current_travelers(trip, max_travelers)
+    ensure_capacity_fits_current_travelers(trip, max_travelers)
 
     trip.destination = destination
     trip.start_date = start_date

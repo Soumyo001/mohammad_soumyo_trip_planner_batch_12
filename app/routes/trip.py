@@ -20,6 +20,12 @@ def get_trip(trip_id):
     trip = trip_service.get_trip(trip_id)
     return jsonify(trip.to_json()), 200
 
+@trip_bp.get("/trips/<int:trip_id>/summary")
+def get_trip_summary(trip_id):
+    trip = trip_service.get_trip(trip_id)
+    summary = trip_service.get_trip_summary(trip)
+    return jsonify(summary), 200
+
 @trip_bp.put("/trips/<int:trip_id>")
 def update_trip(trip_id):
     trip = trip_service.get_trip(trip_id)

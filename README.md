@@ -85,12 +85,19 @@ not committed to the repository.
 │   ├── data/
 │   │   └── constants.py
 │   ├── models/
-│   │   └── trip.py
+│   │   ├── trip.py
+│   │   ├── traveler.py
+│   │   ├── trip_traveler.py
+│   │   └── expense.py
 │   ├── routes/
 │   │   ├── health.py
-│   │   └── trip.py
+│   │   ├── trip.py
+│   │   ├── traveler.py
+│   │   └── expense.py
 │   ├── services/
-│   │   └── trip.py
+│   │   ├── trip.py
+│   │   ├── traveler.py
+│   │   └── expense.py
 │   └── utils/
 │       ├── error_util.py
 │       ├── extension_util.py
@@ -112,6 +119,8 @@ not committed to the repository.
 | DELETE | `/api/v1/trips/<trip_id>` | Delete a trip |
 | POST | `/api/v1/trips/<trip_id>/travelers` | Add a traveler to a trip |
 | DELETE | `/api/v1/trips/<trip_id>/travelers/<traveler_id>` | Remove a traveler from a trip |
+| POST | `/api/v1/trips/<trip_id>/expenses` | Add an expense to a trip |
+| GET | `/api/v1/trips/<trip_id>/summary` | Calculated trip summary |
 
 Remaining endpoints are documented as they are implemented.
 
@@ -143,3 +152,12 @@ Remaining endpoints are documented as they are implemented.
   traveler record remains and may belong to other trips.
 - Deleting a trip also deletes its participations and expenses.
 - Reducing `max_travelers` below the current traveler count returns HTTP 409.
+- Email addresses are validated against a standard pattern requiring a
+  domain with a top-level domain, so addresses such as `user@localhost` are
+  rejected.
+- Monetary comparisons are rounded to two decimal places so that an expense
+  exactly equal to the remaining budget is accepted (BR-08), without
+  floating point representation error causing a false rejection.
+- The summary endpoint is read-only and available in every trip status.
+- `total_expense` is 0 and `remaining_budget` equals the budget for a trip
+  with no expenses.

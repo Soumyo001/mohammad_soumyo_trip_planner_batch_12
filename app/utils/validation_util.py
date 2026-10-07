@@ -55,10 +55,6 @@ def parse_email(value, field_name):
     if not isinstance(value, str) or not value.strip():
         raise ValidationError(f"'{field_name}' must be non-empty string")
     email = value.strip().lower()
-    if (not email 
-        or "@" not in email 
-        or " " in email 
-        or "." not in email.split("@")[-1] 
-        or not re.match(EMAIL_REGEX, email)):
+    if not re.match(EMAIL_REGEX, email):
         raise ValidationError(f"'{field_name}' must be a valid email address")
     return email

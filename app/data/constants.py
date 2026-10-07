@@ -1,6 +1,7 @@
 import os
 
 EMAIL_REGEX = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+MONEY_PRECISION = 2
 
 DEFAULT_ERROR_CODES = {
     400: "BAD_REQUEST",
@@ -22,6 +23,11 @@ TRIP_REQUIRED_FIELDS = (
 TRAVELER_REQUIRED_FIELDS = (
     "name",
     "email"
+)
+
+EXPENSE_REQUIRED_FIELDS = (
+    "title",
+    "amount"
 )
 
 class Paths:
