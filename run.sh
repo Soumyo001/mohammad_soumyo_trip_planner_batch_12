@@ -28,6 +28,9 @@ fi
 echo "Installing dependencies..."
 pip install -r requirements.txt
 
+echo "Running unit tests..."
+python3 -m pytest -v
+
 echo "Initializing database..."
 python3 -c "from app import create_app; create_app()"
 
