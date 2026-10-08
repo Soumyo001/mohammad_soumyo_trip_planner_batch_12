@@ -1,31 +1,30 @@
 # Smart Group Trip Planner API
 
-This project is a REST API built with Python, Flask, and SQLite. It handles group trips, travelers, expenses, and the rules around a trip's different statuses.
+A REST API for managing group trips, travelers, expenses and trip lifecycle
+rules, built with Python, Flask and SQLite.
 
 ## Problem statement
 
-A travel organization needs a way to manage group trips without having to keep track of everything manually. Each trip has a destination, start and end dates, a budget, a traveler limit, a list of travelers, expenses, and a current status.
-
-The API also checks the rules before making changes. For example, it won't allow more travelers than a trip can hold, add the same traveler twice, put someone on overlapping trips, let expenses go over budget, or accept an invalid status change.
+A travel organization needs a backend service to manage group trips. A trip
+has a destination, date range, budget, capacity, travelers, expenses and a
+lifecycle status. The API prevents invalid operations such as overbooking,
+duplicate participation, overlapping trips for the same traveler,
+overspending and invalid status transitions.
 
 ## Prerequisites
 
-You'll need:
-
 - Python 3.10 or newer
-- bash (for running `./run.sh`)
+- bash (to run `./run.sh`)
 
 ## Run from a fresh clone
-
-From the project directory, run:
 
 ```bash
 ./run.sh
 ```
 
-The API will start at http://127.0.0.1:5000
+The API starts on http://127.0.0.1:5000
 
-If you get a permission error because the script isn't executable, run:
+If the script is not executable:
 
 ```bash
 chmod +x run.sh
@@ -34,8 +33,6 @@ chmod +x run.sh
 
 ## Manual run
 
-You can also start it manually instead of using the script:
-
 ```bash
 pip install -r requirements.txt
 python run.py
@@ -43,13 +40,15 @@ python run.py
 
 ## Environment variables
 
-There's a `.env.example` file in the repository. On the first run, `./run.sh` copies it to `.env` automatically. If you're starting the application manually, copy it yourself:
+The repository ships a `.env.example` file. `./run.sh` copies it to `.env`
+on first run. When running manually, copy it yourself:
 
 ```bash
 cp .env.example .env
 ```
 
-The application has safe defaults for all of these settings, so it can still start if you don't have a `.env` file.
+All variables have safe defaults in the application, so the API starts
+correctly even if `.env` is missing.
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
@@ -58,13 +57,16 @@ The application has safe defaults for all of these settings, so it can still sta
 | `FLASK_DEBUG` | `False` | Set to `True` to enable the Flask debugger |
 | `DATABASE_URI` | Absolute path to `instance/trip_planner.db` | Database connection string |
 
-> You can leave `DATABASE_URI` empty. If you set it to a SQLite file, use an absolute path. Flask-SQLAlchemy treats relative SQLite paths as relative to the instance folder.
+> `DATABASE_URI` may be left empty. If you set it to a SQLite file, use an
+absolute path - Flask-SQLAlchemy resolves relative SQLite paths against the
+instance folder.
 
 ## How SQLite is initialized and stored
 
-SQLite doesn't need any separate setup here. When the application starts for the first time, it creates the database file at `instance/trip_planner.db`. The application factory calls `db.create_all()`, so there's no need to run SQL or set up the tables manually.
-
-The database file is created on your machine and isn't committed to the repository.
+The database file is created at `instance/trip_planner.db` the first time the
+application starts. `db.create_all()` runs inside the application factory, so
+no manual SQL or configuration is needed. The file is generated locally and is
+not committed to the repository.
 
 ## Project structure
 
@@ -107,8 +109,6 @@ The database file is created on your machine and isn't committed to the reposito
 
 ## API endpoints
 
-These are the available endpoints:
-
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
 | GET | `/health` | Application health |
@@ -125,8 +125,6 @@ These are the available endpoints:
 
 ## Example requests and responses
 
-Here are a few `curl` examples showing how to use the API and what it returns.
-
 ### Create a trip
 
 ```bash
@@ -135,7 +133,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/trips \
   -d '{"destination":"Coxs Bazar","start_date":"2026-10-20","end_date":"2026-10-23","budget":30000,"max_travelers":5}'
 ```
 
-Response: `201 Created`
+`201 Created`
 
 ```json
 {
@@ -157,7 +155,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/trips/1/travelers \
   -d '{"name":"Ayesha Rahman","email":"ayesha@example.com"}'
 ```
 
-Response: `201 Created`
+`201 Created`
 
 ```json
 {
@@ -175,7 +173,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/trips/1/expenses \
   -d '{"title":"Hotel","amount":12000}'
 ```
 
-Response: `201 Created`
+`201 Created`
 
 ```json
 {
@@ -194,7 +192,7 @@ curl -X PATCH http://127.0.0.1:5000/api/v1/trips/1/status \
   -d '{"status":"ONGOING"}'
 ```
 
-Response: `200 OK`. The response contains the updated trip, with its `status` set to `ONGOING`.
+`200 OK` — the updated trip object, with `status` set to `ONGOING`.
 
 ### Trip summary
 
@@ -202,7 +200,7 @@ Response: `200 OK`. The response contains the updated trip, with its `status` se
 curl http://127.0.0.1:5000/api/v1/trips/1/summary
 ```
 
-Response: `200 OK`
+`200 OK`
 
 ```json
 {
@@ -220,7 +218,7 @@ Response: `200 OK`
 
 ### Error response
 
-Errors follow the same JSON format. For example, if you try to add the same traveler to a trip again:
+Every failure returns the same shape.
 
 ```bash
 curl -X POST http://127.0.0.1:5000/api/v1/trips/1/travelers \
@@ -228,7 +226,7 @@ curl -X POST http://127.0.0.1:5000/api/v1/trips/1/travelers \
   -d '{"name":"Ayesha Rahman","email":"ayesha@example.com"}'
 ```
 
-Response: `409 Conflict`
+`409 Conflict`
 
 ```json
 {
@@ -238,8 +236,6 @@ Response: `409 Conflict`
 ```
 
 ## Business rules
-
-The API checks the following rules when handling requests. I've included where each check happens and the HTTP status returned if it fails.
 
 | Rule | Requirement | Enforced in | Failure |
 |------|-------------|-------------|---------|
@@ -258,42 +254,77 @@ The API checks the following rules when handling requests. I've included where e
 | BR-13 | CANCELLED trips are frozen | Same as BR-12 | 409 |
 | BR-14 | Only the defined lifecycle transitions are valid | `TripStatus.ALLOWED_TRANSITIONS` in `app/data/constants.py`, checked by `ensure_transition_is_allowed` | 409 |
 
-> The allowed status changes are kept in a dictionary in `app/data/constants.py` instead of being scattered across conditional statements. If the transition rules need to change, that dictionary is the only place to update them.
+> The lifecycle is defined as data rather than conditional branches, so a
+change to the permitted transitions is a change to a single dictionary in
+`app/data/constants.py`.
 
 ## Assumptions
 
-A few details weren't fully specified, so these are the assumptions used in the implementation:
-
-- `PUT /api/v1/trips/<trip_id>` also works with a partial request body. If a field isn't provided, its existing value stays the same.
-- Sending `status` in a `PUT` request won't change the trip status. That has to go through `PATCH /api/v1/trips/<trip_id>/status`, where the lifecycle rules are checked.
-- `GET /api/v1/trips` returns a JSON array containing the trips.
-- If the request body is missing, contains invalid JSON, or isn't sent as `application/json`, the API returns HTTP 400.
-- Travelers are stored as global records and identified by email. If an email is already in the database, the existing traveler record is reused rather than creating another one. Emails are trimmed and converted to lowercase before comparison.
-- When an existing traveler is added to another trip using the same email, the name already stored for that traveler stays unchanged.
-- BR-06 checks overlapping trips regardless of their status. Since the rule doesn't list exceptions, even a CANCELLED trip can prevent a traveler from joining another trip with overlapping dates.
-- Dates are considered overlapping unless one trip ends strictly before the other starts. This means two trips are still considered to overlap if one ends on the same day the other begins.
-- A traveler can be removed from a PLANNED or ONGOING trip. Removing someone from a COMPLETED or CANCELLED trip is blocked because those trips can no longer be edited (BR-12 and BR-13).
-- Removing someone from a trip only removes their participation in that trip. Their traveler record remains available for other trips.
-- Deleting a trip removes its traveler participations and expenses too.
-- If `max_travelers` is lowered below the number of people already on a trip, the API responds with HTTP 409.
-- Email validation expects a normal domain with a top-level domain. An address such as `user@localhost` won't pass validation.
-- For budget checks, monetary values are rounded to two decimal places. This allows an expense equal to the exact remaining budget (BR-08), without a small floating-point difference causing an incorrect rejection.
-- The summary endpoint doesn't modify anything and can be used no matter what status the trip is in.
-- If a trip has no expenses, `total_expense` is 0 and `remaining_budget` is the same as the original budget.
-- An unknown `status` value (anything outside the four lifecycle states) results in HTTP 400. If the status is valid but the transition isn't allowed from the current state, the response is HTTP 409.
-- Status values aren't case-sensitive when sent in requests. They're stored in uppercase.
-- Setting a trip's status to the status it already has isn't allowed, since that isn't one of the transitions defined in the assignment.
-- `PUT` is allowed when a trip is PLANNED or ONGOING, but is rejected when it's COMPLETED or CANCELLED (BR-12 and BR-13).
-- `DELETE` is allowed for a trip in any status. BR-12 and BR-13 prevent editing finished trips, but deleting a trip is treated separately from editing it.
+- `PUT /api/v1/trips/<trip_id>` accepts partial payloads. Fields that are
+  absent keep their current values.
+- `PUT` ignores a `status` field in the body. Status changes go through
+  `PATCH /api/v1/trips/<trip_id>/status` so that lifecycle rules cannot be
+  bypassed.
+- `GET /api/v1/trips` returns a JSON array of trip objects.
+- A request body that is missing, malformed, or not sent as
+  `application/json` is rejected with HTTP 400.
+- Travelers are global records identified by email. Adding a traveler whose
+  email already exists reuses the existing record instead of creating a
+  duplicate. Emails are compared after trimming and lowercasing.
+- A traveler's stored name is not updated when the same email is added to a
+  later trip.
+- BR-06 is applied to every trip a traveler participates in, regardless of
+  that trip's status, because the rule states no exception. A CANCELLED trip
+  therefore still blocks an overlapping one.
+- Two date ranges are treated as overlapping when neither ends strictly
+  before the other begins, so a trip ending on the same day another begins
+  is a conflict.
+- Removing a traveler is allowed while a trip is PLANNED or ONGOING, and
+  rejected for COMPLETED and CANCELLED trips, which cannot be edited
+  (BR-12, BR-13).
+- Removing a traveler from a trip deletes the participation only. The
+  traveler record remains and may belong to other trips.
+- Deleting a trip also deletes its participations and expenses.
+- Reducing `max_travelers` below the current traveler count returns HTTP 409.
+- Email addresses are validated against a standard pattern requiring a
+  domain with a top-level domain, so addresses such as `user@localhost` are
+  rejected.
+- Monetary comparisons are rounded to two decimal places so that an expense
+  exactly equal to the remaining budget is accepted (BR-08), without
+  floating point representation error causing a false rejection.
+- The summary endpoint is read-only and available in every trip status.
+- `total_expense` is 0 and `remaining_budget` equals the budget for a trip
+  with no expenses.
+- A `status` value that is not one of the four lifecycle states is rejected
+  with HTTP 400 as invalid input. A valid state that is not a permitted
+  transition from the current state is rejected with HTTP 409.
+- Status values are accepted case-insensitively and stored in uppercase.
+- A transition to the trip's current status is rejected, since it is not
+  one of the transitions defined in the assignment.
+- `PUT` is rejected for COMPLETED and CANCELLED trips (BR-12, BR-13) and
+  allowed for PLANNED and ONGOING trips.
+- `DELETE` is permitted in any status. BR-12 and BR-13 restrict editing a
+  trip, and deleting is not an edit.
 
 ## Known limitations
 
-There are some things this version doesn't handle, or that I'd approach differently in a production application:
-
-- Money is currently stored using floating-point numbers. The budget comparisons are rounded to two decimal places, but for production it would be better to use integer minor units or a decimal column type.
-- Updating a trip's dates through `PUT` doesn't check BR-06 again for travelers who have already joined. So changing the dates could create an overlap that would have been rejected when the traveler was first added. This follows the assignment, which only requires BR-06 during the join operation.
-- The application checks business rules before committing changes. With two requests happening at exactly the same time, both could pass a capacity or budget check. Duplicate participation is protected by a unique constraint on `trip_travelers`, but the other checks depend on the single-process development server used for this assignment.
-- `GET /api/v1/trips` returns all trips at once. There's no pagination or filtering yet.
-- Database tables are created using `db.create_all()`, without any migration tool. If a model changes, the database file needs to be recreated.
-- Travelers are global records, so removing a traveler from all trips doesn't delete that person's record from the database.
-- Authentication and authorization aren't included in this project. That means any client can modify any trip.
+- Monetary values are stored as floating point numbers. Comparisons are
+  rounded to two decimal places to keep budget checks exact, but a
+  production system would store amounts as integer minor units or use a
+  decimal column type.
+- Changing a trip's dates through `PUT` does not re-check BR-06 for
+  travelers who already joined. A date change can therefore create an
+  overlap that would have been rejected at join time. The assignment
+  specifies BR-06 only for the join operation.
+- Business rules are checked and then committed as separate steps, so two
+  simultaneous requests could in principle both pass a capacity or budget
+  check. The unique constraint on `trip_travelers` prevents duplicate
+  participation at the database level; the other rules rely on the
+  single-process development server used for this assignment.
+- `GET /api/v1/trips` returns every trip with no pagination or filtering.
+- Tables are created with `db.create_all()`. There is no migration tooling,
+  so a change to a model requires recreating the database file.
+- A traveler record remains after being removed from every trip, since
+  travelers are global entities identified by email.
+- Authentication and authorization are out of scope, so any client can
+  modify any trip.
