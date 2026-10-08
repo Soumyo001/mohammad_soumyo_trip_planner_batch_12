@@ -266,7 +266,7 @@ change to the permitted transitions is a change to a single dictionary in
   `PATCH /api/v1/trips/<trip_id>/status` so that lifecycle rules cannot be
   bypassed.
 - `GET /api/v1/trips` returns a JSON array of trip objects.
-- A request body that is missing, malformed, or not sent as
+- A request body that is missing, malformed or not sent as
   `application/json` is rejected with HTTP 400.
 - Travelers are global records identified by email. Adding a traveler whose
   email already exists reuses the existing record instead of creating a
