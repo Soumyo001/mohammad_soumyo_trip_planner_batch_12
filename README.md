@@ -279,7 +279,7 @@ change to the permitted transitions is a change to a single dictionary in
 - Two date ranges are treated as overlapping when neither ends strictly
   before the other begins, so a trip ending on the same day another begins
   is a conflict.
-- Removing a traveler is allowed while a trip is PLANNED or ONGOING, and
+- Removing a traveler is allowed while a trip is PLANNED or ONGOING and
   rejected for COMPLETED and CANCELLED trips, which cannot be edited
   (BR-12, BR-13).
 - Removing a traveler from a trip deletes the participation only. The
@@ -289,7 +289,7 @@ change to the permitted transitions is a change to a single dictionary in
 - Email addresses are validated against a standard pattern requiring a
   domain with a top-level domain, so addresses such as `user@localhost` are
   rejected.
-- Monetary comparisons are rounded to two decimal places so that an expense
+- Money comparisons are rounded to two decimal places so that an expense
   exactly equal to the remaining budget is accepted (BR-08), without
   floating point representation error causing a false rejection.
 - The summary endpoint is read-only and available in every trip status.
@@ -304,7 +304,7 @@ change to the permitted transitions is a change to a single dictionary in
 - `PUT` is rejected for COMPLETED and CANCELLED trips (BR-12, BR-13) and
   allowed for PLANNED and ONGOING trips.
 - `DELETE` is permitted in any status. BR-12 and BR-13 restrict editing a
-  trip, and deleting is not an edit.
+  trip and deleting is not an edit.
 
 ## Known limitations
 
